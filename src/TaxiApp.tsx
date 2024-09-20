@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { StyleSheet } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -17,7 +17,7 @@ function TaxiApp() : JSX.Element { // JSX.Element는 반환 타입
       <Stack.Navigator>
         {/* headerShown 은 header(제목)를 보여줄 것이냐 말것이냐 */}
         <Stack.Screen name='Intro' component={Intro} options={{ headerShown: false }} />
-        <Stack.Screen name='Login' component={Login} options={{ headerShown: true }} />
+        <Stack.Screen name='Login' component={Login} options={{ headerShown: false }} />
         <Stack.Screen name='Register' component={Register} options={{ headerShown: true, title: '회원가입' }} />
         <Stack.Screen name='Main' component={Main} options={{ headerShown: false }} />
       </Stack.Navigator>

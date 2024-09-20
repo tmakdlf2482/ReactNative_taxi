@@ -1,11 +1,29 @@
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { SafeAreaView, StyleSheet, TouchableOpacity, View, TextInput, Text } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
 import { useNavigation, ParamListBase } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { useState } from 'react';
 
 function Login() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Login()');
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+
+  const [UserId, setUserId] = useState('');
+  const [UserPw, setUserPw] = useState('');
+  const [Disable, setDisable] = useState(true); // 로그인 버튼 활성화/비활성화
+
+  const onIdChange = (newId: string) => {
+    // 먼저 사용자가 입력한 Id가 채워져있고, 그 다음에 비밀번호가 채워져 있다면 로그인 버튼 활성화, 사용자가 입력한 Id가 채워져 있지 않으면 뒤에 있는 비밀번호가 채워져 있는지 체크하지 않음
+    newId && UserPw ? setDisable(false) : setDisable(true);
+    setUserId(newId);
+  };
+
+  const onPwChange = (newPw: string) => {
+    // 먼저 사용자가 입력한 비밀번호가 채워져 있고, 그 다음에 아이디가 채워져 있다면 로그인 버튼 활성화, 사용자가 입력한 비밀번호가 채워져 있지 않으면 뒤에 있는 아이디가 채워져 있는지 체크하지 않음
+    newPw && UserId ? setDisable(false) : setDisable(true);
+    setUserPw(newPw);
+  };
 
   const gotoRegister = () => {
     navigation.push('Register'); // 이 'Register'는 화면의 이름으로 넘기기 때문에 TaxiApp.tsx에서 Stack.Screen name='' 으로 지정된 이름이 중요함
@@ -16,38 +34,46 @@ function Login() : JSX.Element { // JSX.Element는 반환 타입
   };
 
   return (
-    <SafeAreaView>
-      <Text style={styles.textBlack}>Hello React Native</Text>
-      <Text style={styles.textBlue}>Login</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <Icon name='taxi' size={80} color={'#3498db'} />
+      </View>
 
-      <TouchableOpacity style={styles.button} onPress={gotoRegister}>
-        <Text style={styles.buttonText}>회원 가입으로 이동</Text>
-      </TouchableOpacity>
+      <View style={styles.container}>
+        <TextInput style={styles.input} placeholder={"아이디"} onChangeText={onIdChange} />
+        {/* secureTextEntry는 인풋 창이 별표로 표시됨 */}
+        <TextInput style={styles.input} placeholder={"패스워드"} secureTextEntry={true} onChangeText={onPwChange} />
+      </View>
 
-      <TouchableOpacity style={[styles.button, { marginTop: 5 }]} onPress={gotoMain}>
-        <Text style={styles.buttonText}>메인으로 이동</Text>
-      </TouchableOpacity>
+      <View style={styles.container}>
+        <TouchableOpacity style={Disable? styles.buttonDisable : styles.button} disabled={Disable} onPress={gotoMain}>
+          <Text style={styles.buttonText}>로그인</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, {marginTop: 5}]} onPress={gotoRegister}>
+          <Text style={styles.buttonText}>회원가입</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  textBlack: {
-    fontSize: 18,
-    color: 'black',
-  },
-  textBlue: {
-    fontSize: 18,
-    color: 'blue',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
   },
   button: {
-    width: 200,
+    width: '70%',
     backgroundColor: '#3498db',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  buttonDisable: {
+    width: '70%',
+    backgroundColor: 'gray',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -56,6 +82,14 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
+  },
+  input: {
+    width: '70%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: 'gray',
+    marginVertical: 10,
+    padding: 10,
   },
 });
 

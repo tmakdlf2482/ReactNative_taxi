@@ -1,56 +1,42 @@
 // TouchableOpacity 는 버튼과 유사
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
-import { useNavigation, ParamListBase } from "@react-navigation/native";
+import { SafeAreaView, StyleSheet } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { useNavigation, ParamListBase, useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import Icon from 'react-native-vector-icons/FontAwesome';
+import React from 'react';
 
+// useFocusEffect : 해당 화면으로 포커스가 왔을 때 발생하는 이벤트를 끌고 옴
+// hooking : 이벤트를 끌고 오는 것
 function Intro() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Intro()');
 
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
 
-  // 버튼을 누르면 Login Component로 넘어감
-  const gotoLogin = () => {
-    // .push : Stack에서 새로운 화면을 추가시키는 것, 네비게이션에게 새로운 화면이 들어간다고 알려주면 그 위에 새로운 화면이 덮히게됨
-    navigation.push('Login'); // Login 화면으로 덮힘
-  };
+  useFocusEffect(React.useCallback(() => { // useFocusEffect : 이 앱이 실행됐을 때 실행시킴 (react에서 useEffect와 비슷함)
+    setTimeout( () => {
+      let isAutoLogin = false; // isAutoLogin : 자동 로그인 기능을 구현해서 isAutoLogin이 true이면 메인 화면으로 바로 넘어가고, false면 로그인 화면으로 넘어감
+      
+      if (isAutoLogin) { // isAutoLogin이 true이면 Main 컴포넌트로 이동
+        navigation.push('Main');
+      }
+      else { // isAutoLogin이 false이면 Login 컴포넌트로 이동
+        navigation.push('Login');
+      }
+    }, 2000);
+  }, []));
 
   return (
-    <SafeAreaView>
-      <Text style={styles.textBlack}>Hello React Native</Text>
-      <Text style={styles.textBlue}>Intro</Text>
-
-      <TouchableOpacity style={styles.button} onPress={gotoLogin}>
-        <Text style={styles.buttonText}>로그인으로 이동</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <Icon name='taxi' size={100} color={'#3498db'} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  textBlack: {
-    fontSize: 18,
-    color: 'black',
-  },
-  textBlue: {
-    fontSize: 18,
-    color: 'blue',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  button: {
-    width: 200,
-    backgroundColor: '#3498db',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
   },
 });
 
