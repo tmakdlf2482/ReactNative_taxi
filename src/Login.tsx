@@ -3,6 +3,7 @@ import { useNavigation, ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Login() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Login()');
@@ -30,7 +31,11 @@ function Login() : JSX.Element { // JSX.Element는 반환 타입
   };
 
   const gotoMain = () => {
-    navigation.push('Main');
+    // 1번 로그인 하면 로그인 한 유저 아이디를 저장 
+    AsyncStorage.setItem('UserId', UserId)
+    .then(() => {
+      navigation.push('Main');
+    });
   };
 
   return (

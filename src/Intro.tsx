@@ -4,6 +4,7 @@ import { useNavigation, ParamListBase, useFocusEffect } from '@react-navigation/
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // useFocusEffect : 해당 화면으로 포커스가 왔을 때 발생하는 이벤트를 끌고 옴
 // hooking : 이벤트를 끌고 오는 것
@@ -13,8 +14,10 @@ function Intro() : JSX.Element { // JSX.Element는 반환 타입
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
 
   useFocusEffect(React.useCallback(() => { // useFocusEffect : 이 앱이 실행됐을 때 실행시킴 (react에서 useEffect와 비슷함)
-    setTimeout( () => {
-      let isAutoLogin = false; // isAutoLogin : 자동 로그인 기능을 구현해서 isAutoLogin이 true이면 메인 화면으로 바로 넘어가고, false면 로그인 화면으로 넘어감
+    setTimeout(async () => {
+      let UserId = await AsyncStorage.getItem('UserId'); // await : 비동기 실행을 동기 실행인것 처럼 결과 값이 나올때까지 기다림
+
+      let isAutoLogin = UserId ? true : false; // isAutoLogin : 자동 로그인 기능을 구현해서 isAutoLogin이 true이면 메인 화면으로 바로 넘어가고, false면 로그인 화면으로 넘어감
       
       if (isAutoLogin) { // isAutoLogin이 true이면 Main 컴포넌트로 이동
         navigation.push('Main');

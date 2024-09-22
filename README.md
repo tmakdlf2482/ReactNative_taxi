@@ -27,3 +27,7 @@
 5. 탭 네비게이션을 화면 아래에 표시하기 위한 라이브러리[클라이언트] : `npm i @react-navigation/bottom-tabs` <br />
 6. 아이콘 라이브러리[클라이언트] : `npm i react-native-vector-icons` <br />
 7. 화면 크기의 퍼센테이지로 화면의 크기 위치를 결정할 수 있도록 도와주는 라이브러리[클라이언트] : `npm i react-native-responsive-screen` <br />
+8. 로그인 상태 여부를 체크할 수 있는 저장 장소, 자동 로그인 구현 라이브러리[클라이언트] : `npm i @react-native-async-storage/async-storage` <br />
+
+## 공식문서들
+1. AsyncStorage : `https://react-native-async-storage.github.io/async-storage/` <br />
