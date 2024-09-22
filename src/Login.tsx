@@ -1,6 +1,6 @@
-import { SafeAreaView, StyleSheet, TouchableOpacity, View, TextInput, Text } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
-import { useNavigation, ParamListBase } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { SafeAreaView, StyleSheet, TouchableOpacity, View, TextInput, Text } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { useNavigation, ParamListBase } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
 

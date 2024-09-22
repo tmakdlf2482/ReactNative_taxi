@@ -1,5 +1,5 @@
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, View } from "react-native"; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
-import Icon from "react-native-vector-icons/FontAwesome";
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, View } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
 
 function Register() : JSX.Element { // JSX.Element는 반환 타입
