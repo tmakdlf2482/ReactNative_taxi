@@ -15,19 +15,30 @@ function Main_Setting() : JSX.Element { // JSX.Element는 반환 타입
     });
   };
 
-  let arrSetMenu = [{id: 0, name: '로그아웃'}];
+  let arrSetMenu = [{id: 0, name: '로그아웃'}, {id: 1, name: '닉네임 설정'}, ];
 
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
         style={{ width: '100%',  }}
         data={arrSetMenu}
-        renderItem={(row: any) => {
-          console.log('row = ' + JSON.stringify(row))
+        renderItem={({item}) => {
+          console.log('row = ' + JSON.stringify(item));
           return (
-            <TouchableOpacity style={styles.container} onPress={onLogout}>
-              <Text style={styles.textForm}>{row.item.name}</Text>
-            </TouchableOpacity>
+            <>
+              {
+                item.id === 0 &&
+                <TouchableOpacity style={styles.container} onPress={onLogout}>
+                  <Text style={styles.textForm}>{item.name}</Text>
+                </TouchableOpacity>
+              }
+              {
+                item.id === 1 &&
+                <TouchableOpacity style={styles.container} onPress={() => {navigation.navigate('NickName');}}>
+                  <Text style={styles.textForm}>{item.name}</Text>
+                </TouchableOpacity>
+              }
+            </>
           );
         }}
         keyExtractor={(item: any) => item.id}
