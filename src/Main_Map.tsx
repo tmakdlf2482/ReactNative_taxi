@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, Modal, TouchableOpacity } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { SafeAreaView, StyleSheet, Text, View, Modal, TouchableOpacity, Alert } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
 import Icon from 'react-native-vector-icons/FontAwesome';
 // widthPercentageToDP, heightPercentageToDP는 화면에서의 퍼센트를 좌표로 바꿔주는 기능
 // widthPercentageToDP : 가로 넓이에서 %로 좌표를 뽑아냄
@@ -9,6 +9,9 @@ import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps'; 
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import API from './API';
 import Geolocation from '@react-native-community/geolocation';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 유저 아이디 알아오기
+import { useNavigation, ParamListBase } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import config from '../key';
 const { GOOGLE_MAPS_KEY } = config;
 
@@ -25,6 +28,43 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+
+  // 유저가 택시 호출하는 함수
+  const callTaxi = async () => {
+    let userId = await AsyncStorage.getItem('UserId') || ''; // 유저 아이디
+    let startAddr = autoComplete1.current.getAddressText(); // 출발지 주소
+    let endAddr = autoComplete2.current.getAddressText(); // 도착지 주소
+    let startLat = `${Marker1.latitude}`; // 출발지 위도
+    let startLng = `${Marker1.longitude}`; // 출발지 경도
+    let endLat = `${Marker2.latitude}`; // 도착지 위도
+    let endLng = `${Marker2.longitude}`; // 도착지 경도
+
+    if (!(startAddr && endAddr)) {
+      Alert.alert('알림', '출발지 또는 도착지가 모두 입력되어야 합니다.', [{text: '확인', style: 'cancel'}]);
+
+      return;
+    }
+
+    API.call(userId, startLat, startLng, startAddr, endLat, endLng, endAddr)
+    .then((response) => {
+      let {code, message} = response.data[0];
+      let title = '알림';
+      
+      if (code == 0) { // 정상 호출
+        navigation.navigate('Main_List');
+      }
+      else { // 서버 오류
+        title = '오류';
+      }
+
+      Alert.alert(title, message, [{text: '확인', style: 'cancel'}]);
+    })
+    .catch((err) => {
+      console.log('callTaxi / err = ' + err);
+    });
+  };
 
   // 장소를 입력했을 때 그 장소를 가지고 구글의 쿼리를 날림
   let query = {
@@ -227,7 +267,7 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
           </View>
         </View>
         
-        <TouchableOpacity style={[styles.button, { position: 'absolute', width: wp(18), height: 90, top: wp(2), right: wp(2), justifyContent: 'center' }]}>
+        <TouchableOpacity style={[styles.button, { position: 'absolute', width: wp(18), height: 90, top: wp(2), right: wp(2), justifyContent: 'center' }]} onPress={callTaxi}>
           <Text style={styles.buttonText}>호출</Text>
         </TouchableOpacity>
       </View>

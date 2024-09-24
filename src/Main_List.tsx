@@ -66,6 +66,7 @@ function Main_List() : JSX.Element { // JSX.Element는 반환 타입
         <View style={{ width: wp(80) }}>
           <Text style={styles.textForm}>{row.item.start_addr}</Text>
           <Text style={[styles.textForm, { borderTopWidth: 0 }]}>{row.item.end_addr}</Text>
+          <Text style={styles.textForm}>{row.item.formatted_time}</Text>
         </View>
 
         <View style={{ width: wp(20), alignItems: 'center', justifyContent: 'center' }}>

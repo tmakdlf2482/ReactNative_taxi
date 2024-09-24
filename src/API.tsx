@@ -20,6 +20,9 @@ export default {
   list(id: string) { // 콜 목록 불러오기 (유저)
     return instance.post('/taxi/list', {userId: id});
   },
+  call(id: string, startLat: string, startLng: string, startAddr: string, endLat: string, endLng: string, endAddr: string) { // 새로운 콜 등록 (유저)
+    return instance.post('/taxi/call', {userId: id, startLat: startLat, startLng: startLng, startAddr: startAddr, endLat: endLat, endLng: endLng, endAddr: endAddr});
+  },
   geoCoding(coords: any, key: string) { // Geocoding API를 구글을 이용해 사용하는 함수
     let url = 'https://maps.googleapis.com/maps/api/geocode/json'; // 구글 쪽 서버의 주소
     let lat = coords.latitude; // 위도

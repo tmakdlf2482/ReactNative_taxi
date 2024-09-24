@@ -7,6 +7,7 @@ import Main from './Main';
 import Login from './Login';
 import Register from './Register';
 import Main_Setting_NickName from './Main_Setting_NickName';
+import Main_List from './Main_List';
 
 function TaxiApp() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- TaxiApp()');
@@ -22,6 +23,7 @@ function TaxiApp() : JSX.Element { // JSX.Element는 반환 타입
         <Stack.Screen name='Register' component={Register} options={{ headerShown: true, title: '회원가입' }} />
         <Stack.Screen name='Main' component={Main} options={{ headerShown: false }} />
         <Stack.Screen name='NickName' component={Main_Setting_NickName} options={{ headerShown: false }} />
+        <Stack.Screen name='Main_List' component={Main_List} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
