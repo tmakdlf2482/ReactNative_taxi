@@ -8,10 +8,13 @@ const instance = axios.create({
 });
 
 export default {
-  test() {
+  test() { // 테스트
     return instance.get('/taxi/test');
   },
-  login(id: string, pw: string) {
+  login(id: string, pw: string) { // 로그인 (유저)
     return instance.post('/taxi/login', {userId: id, userPw: pw});
+  },
+  register(id: string, pw: string) { // 회원가입 (유저)
+    return instance.post('/taxi/register', {userId: id, userPw: pw});
   },
 }
