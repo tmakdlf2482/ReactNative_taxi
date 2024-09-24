@@ -30,6 +30,7 @@
 8. 로그인 상태 여부를 체크할 수 있는 저장 장소, 자동 로그인 구현 라이브러리[클라이언트] : `npm i @react-native-async-storage/async-storage` <br />
 9. RestAPI, 즉 http를 이용해서 서버에 접속할 때 사용하는 라이브러리[클라이언트] : `npm i axios` <br />
 10. 구글에서 제공해주는 지도 라이브러리를 리액트 네이티브에서 사용하기 위한 라이브러리[클라이언트] : `npm i react-native-maps` <br />
+11. 장소 자동 완성 라이브러리[클라이언트] : `npm i react-native-google-places-autocomplete` <br />
 
 ## 공식문서들
 1. AsyncStorage : `https://react-native-async-storage.github.io/async-storage/` <br />

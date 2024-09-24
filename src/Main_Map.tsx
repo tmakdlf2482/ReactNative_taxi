@@ -4,8 +4,11 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 // widthPercentageToDP : 가로 넓이에서 %로 좌표를 뽑아냄
 // heightPercentageToDP : 세로 넓이에서 %로 좌표를 뽑아냄
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { useState } from 'react';
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import { useState, useRef } from 'react';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps'; // 지도 위에 Marker 점 찍기, Polyline 선 그리기
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import config from '../key';
+const { GOOGLE_MAPS_KEY } = config;
 
 function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Main_Map()');
@@ -17,6 +20,64 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+
+  // 장소를 입력했을 때 그 장소를 가지고 구글의 쿼리를 날림
+  let query = {
+    key: GOOGLE_MAPS_KEY,
+    language: 'ko', // 한국어
+    components: 'country:kr', // 한국을 대상으로 검색
+  }
+
+  // 마커를 사용하기 위한 변수
+  const [Marker1, setMarker1] = useState({latitude: 0, longitude: 0}); // 출발점
+  const [Marker2, setMarker2] = useState({latitude: 0, longitude: 0}); // 도착점
+
+  // 마커 점 찍기, 선 긋기
+  const onSelectAddr = (data: any, details: any, type: string) => {
+    if (details) {
+      let lat = details.geometry.location.lat;
+      let lng = details.geometry.location.lng;
+
+      // 검색 타입이 start냐 end냐에 따라 마커를 찍는 동작을 달리 함
+      if (type == 'start') { // 검색 타입이 출발지이면
+        setMarker1({latitude: lat, longitude: lng});
+        
+        // 첫번째 마커를 옮긴 다음에 두 번째 마커가 셋팅되어 있는지 체크
+        if (Marker2.longitude == 0) { // 도착지가 셋팅이 안된 경우
+          setInitialRegion({
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.0073,
+            longitudeDelta: 0.0064,
+          });
+        }
+      }
+      else { // 검색 타입이 도착지이면
+        setMarker2({latitude: lat, longitude: lng});
+
+        if (Marker1.longitude == 0) { // 출발지가 셋팅이 안된 경우
+          setInitialRegion({
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.0073,
+            longitudeDelta: 0.0064,
+          });
+        }
+      }
+    }
+  };
+
+  const mapRef : any = useRef(null);
+
+  if (Marker1.latitude != 0 && Marker2.latitude != 0) { // Marker1과 Marker2가 모두 셋팅이 된 상태
+    if (mapRef.current) { // mapRef가 지금 지정이 되어 있다면
+      // mapRef를 참조해서 웹 뷰의 위치를 옮김
+      mapRef.current.fitToCoordinates([Marker1, Marker2], {
+        edgePadding: {top: 120, right: 50, bottom: 50, left: 50},
+        animated: true, // 위치가 조정될때 스윽 부드럽게 움직임
+      });
+    }
+  }
 
   // 꾹 누르는 버튼 클릭 함수 (async는 비동기 함수 -> 즉, 어떤 작업이 끝나지 않아도 이 함수를 실행)
   const handleLongPress = async (event: any) => {
@@ -31,21 +92,56 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
   return (
     <SafeAreaView style={styles.container}>
       {/* 지도가 들어갈 자리 */}
-      <MapView style={styles.container} provider={PROVIDER_GOOGLE} region={InitialRegion}>
+      <MapView style={styles.container} provider={PROVIDER_GOOGLE} region={InitialRegion} ref={mapRef}>
+        <Marker coordinate={Marker1} title='출발 위치' />
+        <Marker coordinate={Marker2} title='도착 위치' pinColor='blue' />
 
+        {
+          Marker1.latitude != 0
+          &&
+          Marker2.latitude != 0
+          &&
+          (
+            <Polyline coordinates={[Marker1, Marker2]} strokeColor='blue' strokeWidth={3} />
+          )
+        }
       </MapView>
 
       {/* position: 'absolute' : 두 UI 요소가 겹쳐질 때 사용하는 명령 */}
       <View style={{position: 'absolute', width: '100%', height: '100%', padding: 10}}>
-        <View style={{flexDirection: 'row', }}>
-          <View style={{flex: 1}}>
-            <TextInput style={styles.input} placeholder={'출발지'} />
-            <TextInput style={styles.input} placeholder={'도착지'} />
+        <View style={{ position: 'absolute', padding: wp(2) }}>
+          <View style={{ width: wp(75) }}>
+            <GooglePlacesAutocomplete
+              onPress={(data, details) => onSelectAddr(data, details, 'start')}
+              minLength={2}
+              placeholder='출발지 검색'
+              query={query}
+              keyboardShouldPersistTaps={'handled'}
+              fetchDetails={true}
+              enablePoweredByContainer={false}
+              onFail={(error) => console.log(error)}
+              onNotFound={() => console.log('결과가 없습니다.')}
+              styles={{autoCompleteStyles}} />
           </View>
-          <TouchableOpacity style={[styles.button, { marginLeft: 10, justifyContent: 'center' }]}>
-            <Text style={styles.buttonText}>호출</Text>
-          </TouchableOpacity>
+
+          <View style={{ width: wp(75) }}>
+            <GooglePlacesAutocomplete
+              onPress={(data, details) => onSelectAddr(data, details, 'end')}
+              minLength={2}
+              placeholder='도착지 검색'
+              query={query}
+              keyboardShouldPersistTaps={'handled'}
+              fetchDetails={true}
+              enablePoweredByContainer={false}
+              onFail={(error) => console.log(error)}
+              onNotFound={() => console.log('결과가 없습니다.')}
+              styles={{autoCompleteStyles}} />
+          </View>
         </View>
+        
+        <TouchableOpacity style={[styles.button, { position: 'absolute', width: wp(18), height: 90, top: wp(2), right: wp(2), justifyContent: 'center' }]}>
+          <Text style={styles.buttonText}>호출</Text>
+        </TouchableOpacity>
       </View>
 
       {/* 이 버튼을 누르면 내 위치를 보여줌 */}
@@ -99,6 +195,24 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     marginVertical: 1,
     padding: 10,
+  },
+});
+
+const autoCompleteStyles = StyleSheet.create({
+  textInputContainer: {
+    width: '100%',
+    height: 40,
+    backgroundColor: '#e9e9e9',
+    borderRadius: 8,
+  },
+  textInput: {
+    height: 40,
+    color: '#5d5d5d',
+    fontSize: 16,
+  },
+  preDefinedPlacesDescription: {
+    color: '#1faadb',
+    zIndex: 1,
   },
 });
 
