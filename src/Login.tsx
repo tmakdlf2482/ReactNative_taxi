@@ -1,9 +1,10 @@
-import { SafeAreaView, StyleSheet, TouchableOpacity, View, TextInput, Text } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { SafeAreaView, StyleSheet, TouchableOpacity, View, TextInput, Text, Alert } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
 import { useNavigation, ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import API from './API';
 
 function Login() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Login()');
@@ -38,6 +39,27 @@ function Login() : JSX.Element { // JSX.Element는 반환 타입
     });
   };
 
+  const onLogin = () => {
+    API.login(UserId, UserPw)
+    .then((response) => {
+      console.log('onLogin / response.data = ' + JSON.stringify(response.data[0]));
+
+      let {code, message} = response.data[0];
+      console.log('onLogin / code = ' + code + ', message = ' + message);
+
+      if (code == 0) { // 로그인 성공
+        gotoMain();
+      }
+      else { // 로그인 실패 (정상적으로 데이터는 보냈는데 서버에서 로그인을 거절)
+        // 밑에 Alert.alert는 정상적으로 로그인이 안 됐을 때 뜰 창
+        Alert.alert('오류', message, [{text: '확인', onPress: () => console.log('오류 확인 버튼 눌림'), style: 'cancel'}]);
+      }
+    })
+    .catch((err) => { // 네트워크 자체 오류, 접속 자체가 안된 경우
+      console.log('onLogin / err = ' + err);
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
@@ -51,7 +73,7 @@ function Login() : JSX.Element { // JSX.Element는 반환 타입
       </View>
 
       <View style={styles.container}>
-        <TouchableOpacity style={Disable? styles.buttonDisable : styles.button} disabled={Disable} onPress={gotoMain}>
+        <TouchableOpacity style={Disable? styles.buttonDisable : styles.button} disabled={Disable} onPress={onLogin}>
           <Text style={styles.buttonText}>로그인</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, {marginTop: 5}]} onPress={gotoRegister}>
