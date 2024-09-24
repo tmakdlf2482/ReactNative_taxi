@@ -5,11 +5,18 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 // heightPercentageToDP : 세로 넓이에서 %로 좌표를 뽑아냄
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useState } from 'react';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Main_Map()');
 
   const [ShowBtn, setShowBtn] = useState(false);
+  const [InitialRegion, setInitialRegion] = useState({ // 지도를 켰을 때 초기에 어느 위치, 어느 사이즈(화면 사이즈 말고 지도의 사이즈)로 띄울 것인지
+    latitude: 37.5666612,
+    longitude: 126.9783785,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
 
   // 꾹 누르는 버튼 클릭 함수 (async는 비동기 함수 -> 즉, 어떤 작업이 끝나지 않아도 이 함수를 실행)
   const handleLongPress = async (event: any) => {
@@ -23,10 +30,10 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 지도가 들어갈 자리인데 일단 그림만 1개 띄워놓고 넘어감 */}
-      <View style={[styles.container, { transform: [{scaleX: 1}, {scaleY: 2}] }]}>
-        <Icon name="building" size={300} color={'#34db98'} onPress={() => {setShowBtn(false)}} onLongPress={handleLongPress} />
-      </View>
+      {/* 지도가 들어갈 자리 */}
+      <MapView style={styles.container} provider={PROVIDER_GOOGLE} region={InitialRegion}>
+
+      </MapView>
 
       {/* position: 'absolute' : 두 UI 요소가 겹쳐질 때 사용하는 명령 */}
       <View style={{position: 'absolute', width: '100%', height: '100%', padding: 10}}>
