@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { SafeAreaView, StyleSheet, Text, View, Modal, TouchableOpacity } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
 import Icon from 'react-native-vector-icons/FontAwesome';
 // widthPercentageToDP, heightPercentageToDP는 화면에서의 퍼센트를 좌표로 바꿔주는 기능
 // widthPercentageToDP : 가로 넓이에서 %로 좌표를 뽑아냄
@@ -7,12 +7,17 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useState, useRef } from 'react';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps'; // 지도 위에 Marker 점 찍기, Polyline 선 그리기
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import API from './API';
+import Geolocation from '@react-native-community/geolocation';
 import config from '../key';
 const { GOOGLE_MAPS_KEY } = config;
 
 function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
   console.log('-- Main_Map()');
 
+  const [Loading, setLoading] = useState(false); // 로딩 아이콘이 표시가 되는지 안되는지 체크하는 변수
+  const [SelectedLatLng, setSelectedLatLng] = useState({latitude: 0, longitude: 0}); // 위치를 찍으면 화면을 다시 그림, 위치 정보 감시
+  const [SelectedAddress, setSelectedAddress] = useState(''); // 위치를 찍으면 화면을 다시 그림, 주소 정보 감시
   const [ShowBtn, setShowBtn] = useState(false);
   const [InitialRegion, setInitialRegion] = useState({ // 지도를 켰을 때 초기에 어느 위치, 어느 사이즈(화면 사이즈 말고 지도의 사이즈)로 띄울 것인지
     latitude: 37.5666612,
@@ -79,20 +84,101 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
     }
   }
 
-  // 꾹 누르는 버튼 클릭 함수 (async는 비동기 함수 -> 즉, 어떤 작업이 끝나지 않아도 이 함수를 실행)
+  // 꾹 누르면 출발점이나 도착점으로 선택하는 함수 (async는 비동기 함수 -> 즉, 어떤 작업이 끝나지 않아도 이 함수를 실행)
   const handleLongPress = async (event: any) => {
-    setShowBtn(true);
+    const { coordinate } = event.nativeEvent;
+
+    setSelectedLatLng(coordinate);
+
+    setLoading(true);
+
+    API.geoCoding(coordinate, query.key)
+    .then((response) => {
+      setSelectedAddress(response.data.results[0].formatted_address);
+
+      setShowBtn(true); // 출발지와 도착지 선택 버튼
+
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.log('handleLongPress / err = ' + err);
+
+      setLoading(false);
+    });
   };
 
-  // 화면에 마커를 더해주고 버튼이 사라짐(내가 어느 위치를 찍으면 이 위치를 출발지로 지정하고 출발지 마커가 생기고 버튼이 사라짐)
+  // handle marker
+  const autoComplete1 : any = useRef(null); // 출발지
+  const autoComplete2 : any = useRef(null); // 도착지
+
+  // 출발지 또는 도착지 버튼이 눌렸을 때의 처리
+  // 어떤 장소를 선택한 다음 출발지 버튼을 누르면 그 장소가 출발지가 됨
   const handleAddMarker = (title: string) => {
-    setShowBtn(false);
+    if (SelectedAddress) {
+      if (title == '출발지') {
+        setMarker1(SelectedLatLng);
+
+        if (autoComplete1.current) {
+          autoComplete1.current.setAddressText(SelectedAddress); // 위치를 찍어서 주소 정보를 가져와 GooglePlacesAutocomplete에다가 해당 찍은 주소 텍스트를 넣음
+        }
+      }
+      else { // 도착지
+        setMarker2(SelectedLatLng);
+
+        if (autoComplete2.current) {
+          autoComplete2.current.setAddressText(SelectedAddress); // 위치를 찍어서 주소 정보를 가져와 GooglePlacesAutocomplete에다가 해당 찍은 주소 텍스트를 넣음
+        }
+      }
+
+      // 출발지, 도착지 버튼 닫아줌
+      setShowBtn(false);
+    }
+  };
+
+  // 현재의 내 위치를 가지고 오는 함수
+  const setMyLocation = () => {
+    setLoading(true);
+
+    Geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords; // 좌표 가져옴
+        let coords = { latitude, longitude };
+
+        setMarker1(coords); // 출발지
+        
+        setInitialRegion({latitude: 0, longitude: 0, latitudeDelta: 0, longitudeDelta: 0}) // 지도 위치 초기화
+
+        setInitialRegion({latitude: latitude, longitude: longitude, latitudeDelta: 0.0073, longitudeDelta: 0.0064});
+
+        API.geoCoding(coords, query.key)
+        .then((response) => {
+          let addr = response.data.results[0].formatted_address; // 좌표 -> 주소, 주소창에 넣기
+
+          autoComplete1.current.setAddressText(addr); // 출발지 주소 이름으로 셋팅
+
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.log('setMyLocation / err = ' + err);
+
+          setLoading(false);
+        });
+      },
+      (error) => {
+        setLoading(false);
+        console.log('Geolocation / error = ' + error);
+      },
+      {
+        enableHighAccuracy: false, // 정확한 위치 정보를 못 가져올 경우에도 처리가 가능해짐
+        timeout: 10000, // 10초
+        maximumAge: 1000, // 1초, 위치 정보를 어느 정도 길이까지 캐시를 재활용하느냐
+      }
+    )
   };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* 지도가 들어갈 자리 */}
-      <MapView style={styles.container} provider={PROVIDER_GOOGLE} region={InitialRegion} ref={mapRef}>
+      <MapView style={styles.container} provider={PROVIDER_GOOGLE} region={InitialRegion} ref={mapRef} onLongPress={handleLongPress} onPress={() => {setShowBtn(false)}}>
         <Marker coordinate={Marker1} title='출발 위치' />
         <Marker coordinate={Marker2} title='도착 위치' pinColor='blue' />
 
@@ -112,6 +198,7 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
         <View style={{ position: 'absolute', padding: wp(2) }}>
           <View style={{ width: wp(75) }}>
             <GooglePlacesAutocomplete
+              ref={autoComplete1}
               onPress={(data, details) => onSelectAddr(data, details, 'start')}
               minLength={2}
               placeholder='출발지 검색'
@@ -126,6 +213,7 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
 
           <View style={{ width: wp(75) }}>
             <GooglePlacesAutocomplete
+              ref={autoComplete2}
               onPress={(data, details) => onSelectAddr(data, details, 'end')}
               minLength={2}
               placeholder='도착지 검색'
@@ -145,7 +233,7 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
       </View>
 
       {/* 이 버튼을 누르면 내 위치를 보여줌 */}
-      <TouchableOpacity style={{position: 'absolute', bottom: 20, right: 20}}>
+      <TouchableOpacity style={{position: 'absolute', bottom: 20, right: 20}} onPress={setMyLocation}>
         <Icon name="crosshairs" size={40} color={'#3498db'} />
       </TouchableOpacity>
 
@@ -161,6 +249,13 @@ function Main_Map() : JSX.Element { // JSX.Element는 반환 타입
           </TouchableOpacity>
         </View>
       }
+
+      <Modal transparent={true} visible={Loading}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Icon name='spinner' size={50} color='blue' />
+          <Text style={{ backgroundColor: 'white', color: 'black', height: 20 }}>Loading...</Text>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
