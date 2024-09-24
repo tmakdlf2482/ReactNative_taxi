@@ -1,10 +1,12 @@
 // RefreshControl : 서버에서 목록을 가져오게 되면 새로고침 해야함, 당겨서 새로고침 기능
-import { SafeAreaView, StyleSheet, Text, View, FlatList, RefreshControl, Modal } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
+import { SafeAreaView, StyleSheet, Text, View, FlatList, RefreshControl, Modal, Alert } from 'react-native'; // SafeAreaView : 안전한 구역에 표시를 하기 위해 사용, 다른 곳에 가려지지 않는 보장이 되는 위치를 찾음
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native'; // 화면에 들어오자마자 리스트를 뿌려줌 (react에서의 useEffect와 비슷함)
 import React from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';// '로딩중' 아이콘
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 서버에다가 호출 목록을 부르려고 할 때는 유저 아이디를 알고 있어야 함, 내부 저장 장소에서 유저 아이디를 가져오기 위함
+import API from './API';
 
 // 콜 목록 리스트 : 내가 어떤 위치를 찍고 서버에다가 호출을 요청하면 내가 호출을 요청했던 리스트들이 나옴
 function Main_List() : JSX.Element { // JSX.Element는 반환 타입
@@ -18,23 +20,32 @@ function Main_List() : JSX.Element { // JSX.Element는 반환 타입
   }, []));
 
   // CallList를 요청하는 함수
-  const requestCallList = () => {
-    setLoading(true); // 데이터를 만들기 시작할 때 Loading창 띄우기
+  const requestCallList = async () => {
+    setLoading(true); // 데이터를 서버에서 불러올 때 Loading창 띄우기
 
-    // 실제 데이터를 가져오는 시간이 빨라 Loading 창을 보지 못하므로 살짝 시간지연
-    setTimeout(() => {
-      let tmp: any = []; // 임시 CallList
+    let userId = await AsyncStorage.getItem('UserId') || '';
 
-      for (let i = 0; i < 10; i++) {
-        // call_state: '요청'은 현재 요청 상태, 응답을 받으면 '응답'으로 바뀜 (응답을 받았는지 안받았는지 체크)
-        let row = {id: i, start_addr: '출발주소', end_addr: '도착주소', call_state: '요청'}
-        tmp.push(row);
+    API.list(userId)
+    .then((response) => {
+      console.log('requestCallList / response.data = ' + JSON.stringify(response.data[0]));
+
+      let {code, message, data} = response.data[0];
+      console.log('requestCallList / code = ' + code + ', message = ' + message + ', data = ' + data);
+
+      if (code == 0) { // 콜 목록을 정상적으로 가져온 경우
+        setCallList(data);
+      }
+      else { // 콜 목록을 잘못 가져온 경우
+        Alert.alert('오류', message, [{text: '확인', onPress: () => console.log('오류 확인 버튼 눌림'), style: 'cancel'}]);
       }
 
-      setCallList(tmp);
-
-      setLoading(false); // 데이터가 다 만들어졌으면 Loading창 닫기
-    }, 200); // 0.2초 지연
+      setLoading(false);
+    })
+    .catch((err) => { // 네트워크 자체 오류, 접속 자체가 안된 경우
+      console.log('requestCallList / err = ' + err);
+      
+      setLoading(false);
+    });
   };
 
   const header = () => {

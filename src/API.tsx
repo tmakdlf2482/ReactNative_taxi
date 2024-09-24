@@ -17,4 +17,7 @@ export default {
   register(id: string, pw: string) { // 회원가입 (유저)
     return instance.post('/taxi/register', {userId: id, userPw: pw});
   },
+  list(id: string) { // 콜 목록 불러오기 (유저)
+    return instance.post('/taxi/list', {userId: id});
+  },
 }
